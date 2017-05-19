@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	gomail "gopkg.in/gomail.v2"
+	"gopkg.in/gomail.v2"
 )
 
 // HTTPLogin allows basic HTTP authorization for getting simple responses.
@@ -73,7 +73,7 @@ func E(err error) {
 func (lgn *EmailLogin) Email(to []string, subject string, body string, attachment string) {
 	email := lgn.User + "@gmail.com"
 	msg := gomail.NewMessage()
-	msss := map[string][]string{"From": {email}, "To": to, "Subject": {subject}}
+	msss := map[string][]string{"From": {"WedgeNix<" + email + ">"}, "To": to, "Subject": {subject}}
 	msg.SetHeaders(msss)
 	msg.SetBody("text/html", body)
 	if len(attachment) > 0 {
