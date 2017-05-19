@@ -53,3 +53,11 @@ func Load(name string, v interface{}) {
 	}
 	json.NewDecoder(r).Decode(v)
 }
+
+// Get takes a tuple of a value and an error, prints the possible error, and returns the value.
+func Get(v interface{}, e error) interface{} {
+	if e != nil {
+		fmt.Println(e)
+	}
+	return v
+}
