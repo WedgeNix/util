@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -14,29 +13,24 @@ import (
 
 // HTTPLogin allows basic HTTP authorization for getting simple responses.
 type HTTPLogin struct {
-	Key    string
-	Secret string
+	User string
+	Pass string
 }
 
-// Get grabs a string of the HTTP response from the given URL using authorization.
-func (lgn *HTTPLogin) Get(url string) string {
+// Get receives an HTTP response from the given URL using authorization.
+func (lgn *HTTPLogin) Get(url string) *http.Response {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Println(err)
 	}
-	enc := base64.StdEncoding.EncodeToString([]byte(lgn.Key + ":" + lgn.Secret))
+	enc := base64.StdEncoding.EncodeToString([]byte(lgn.User + ":" + lgn.Pass))
 	req.Header.Add("Authorization", "Basic "+enc)
 	cl := http.Client{Timeout: 10 * time.Second}
 	resp, err := cl.Do(req)
 	if err != nil {
 		fmt.Println(err)
 	}
-	b, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-	if err != nil {
-		fmt.Println(err)
-	}
-	return string(b)
+	return resp
 }
 
 // Load assumes to read the
