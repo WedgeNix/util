@@ -19,7 +19,7 @@ type HTTPLogin struct {
 	Pass string
 }
 
-// EmilLogin login for SMPT.
+// EmailLogin login for SMTP.
 type EmailLogin struct {
 	User string
 	Pass string
