@@ -82,7 +82,7 @@ func (lgn *EmailLogin) Email(to []string, subject string, body string, attachmen
 	d := gomail.NewDialer("smtp.gmail.com", 587, email, lgn.Pass)
 	err := d.DialAndSend(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 
 	}
 }
