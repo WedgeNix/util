@@ -18,12 +18,14 @@ func Load(name string, v interface{}) {
 			fmt.Println(err)
 		}
 		r = res.Body
+		defer res.Body.Close()
 	} else {
 		f, err := os.Open(name + ".json")
 		if err != nil {
 			fmt.Println(err)
 		}
 		r = f
+		defer f.Close()
 	}
 	json.NewDecoder(r).Decode(v)
 }
