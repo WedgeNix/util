@@ -73,10 +73,17 @@ func Save(name string, v interface{}) {
 	}
 }
 
-// E reports the error if there is any.
+// E reports the error if there is any and exits.
 func E(err error) {
 	if err != nil {
 		log.Fatalln(err)
+	}
+}
+
+// R reports the error if there is any.
+func R(err error) {
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
