@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"log"
+
 	"gopkg.in/gomail.v2"
 )
 
@@ -74,7 +76,7 @@ func Save(name string, v interface{}) {
 // E reports the error if there is any.
 func E(err error) {
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalln(err)
 	}
 }
 
