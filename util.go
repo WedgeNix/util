@@ -87,6 +87,14 @@ func R(err error) {
 	}
 }
 
+// P prints the arguments as they are.
+func P(args ...interface{}) {
+	for _, a := range args {
+		fmt.Print(a)
+	}
+	fmt.Println()
+}
+
 //Email to send basic emails from a particular gmail account.
 func (lgn *EmailLogin) Email(to []string, subject string, body string, attachment string) {
 	email := lgn.User + "@gmail.com"
