@@ -87,6 +87,15 @@ func R(err error) {
 	}
 }
 
+// S strings together the arguments as they are.
+func S(args ...interface{}) string {
+	str := ""
+	for _, a := range args {
+		str += fmt.Sprint(a)
+	}
+	return str
+}
+
 // P prints the arguments as they are.
 func P(args ...interface{}) {
 	for _, a := range args {
