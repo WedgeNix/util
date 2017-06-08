@@ -16,24 +16,46 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-// HTTPLogin allows basic HTTP authorization for getting simple responses.
-type HTTPLogin struct {
-	User string
-	Pass string
-}
-
 // EmailLogin login for SMTP.
 type EmailLogin struct {
 	User string
 	Pass string
 }
 
+//Email to send basic emails from a particular gmail account.
+func (l *EmailLogin) Email(to []string, subject string, body string, attachment string) {
+	email := l.User + "@gmail.com"
+	msg := gomail.NewMessage()
+	msss := map[string][]string{"From": {"WedgeNix<" + email + ">"}, "To": to, "Subject": {subject}}
+	msg.SetHeaders(msss)
+	msg.SetBody("text/html", body)
+	if len(attachment) > 0 {
+		msg.Attach(attachment)
+	}
+	d := gomail.NewDialer("smtp.gmail.com", 587, email, l.Pass)
+	err := d.DialAndSend(msg)
+	if err != nil {
+		fmt.Println(err)
+
+	}
+}
+
+// HTTPLogin allows basic HTTP authorization for getting simple responses.
+type HTTPLogin struct {
+	User string
+	Pass string
+}
+
+// Base64 encodes an HTTP username and password.
+func (l HTTPLogin) Base64() string {
+	return base64.StdEncoding.EncodeToString([]byte(l.User + ":" + l.Pass))
+}
+
 // Get receives an HTTP response from the given URL using authorization.
-func (lgn *HTTPLogin) Get(url string) *http.Response {
+func (l HTTPLogin) Get(url string) *http.Response {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	E(err)
-	enc := base64.StdEncoding.EncodeToString([]byte(lgn.User + ":" + lgn.Pass))
-	req.Header.Add("Authorization", "Basic "+enc)
+	req.Header.Add("Authorization", "Basic "+l.Base64())
 	cl := http.Client{Timeout: 10 * time.Second}
 	resp, err := cl.Do(req)
 	E(err)
@@ -102,22 +124,4 @@ func P(args ...interface{}) {
 		fmt.Print(a)
 	}
 	fmt.Println()
-}
-
-//Email to send basic emails from a particular gmail account.
-func (lgn *EmailLogin) Email(to []string, subject string, body string, attachment string) {
-	email := lgn.User + "@gmail.com"
-	msg := gomail.NewMessage()
-	msss := map[string][]string{"From": {"WedgeNix<" + email + ">"}, "To": to, "Subject": {subject}}
-	msg.SetHeaders(msss)
-	msg.SetBody("text/html", body)
-	if len(attachment) > 0 {
-		msg.Attach(attachment)
-	}
-	d := gomail.NewDialer("smtp.gmail.com", 587, email, lgn.Pass)
-	err := d.DialAndSend(msg)
-	if err != nil {
-		fmt.Println(err)
-
-	}
 }
