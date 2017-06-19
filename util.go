@@ -8,13 +8,37 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
 	"log"
 
+	"sync"
+
 	"gopkg.in/gomail.v2"
 )
+
+var (
+	debug       bool
+	debugSync   sync.RWMutex
+	literal     bool
+	literalSync sync.RWMutex
+	gids        []uint64
+	gidSync     sync.Mutex
+)
+
+func init() {
+	// default settings
+	Debug(true)
+	Literal(false)
+
+	gids = []uint64{}
+
+	// read = make(chan bool, 1)
+	// read <- true
+}
 
 // EmailLogin login for SMTP.
 type EmailLogin struct {
@@ -95,18 +119,77 @@ func Save(name string, v interface{}) {
 	}
 }
 
+// Debug sets whether or not to print debug statements.
+func Debug(b bool) {
+	// wait to read
+	// <-read
+	debugSync.Lock()
+
+	debug = b
+
+	// finished reading
+	// read <- true
+	debugSync.Unlock()
+}
+
+// Literal turns on/off channel printing markup.
+func Literal(b bool) {
+	// wait to read
+	// <-read
+	literalSync.Lock()
+
+	literal = b
+
+	// finished reading
+	// read <- true
+	literalSync.Unlock()
+}
+
+// Comment adds visual comments if debugging.
+func Comment(args ...string) {
+	// wait to read
+	// <-read
+
+	debugSync.RLock()
+	defer debugSync.RUnlock()
+	if !debug {
+		return
+	}
+
+	// finished reading
+	// read <- true
+
+	// <--
+	// <-- OUT-OF-SYNC
+	// <--
+
+	for _, comment := range args {
+		P("//", comment)
+	}
+}
+
 // E reports the error if there is any and exits.
 func E(err error) {
-	if err != nil {
-		log.Fatalln(err)
+	if err == nil {
+		return
 	}
+	log.Fatalln(tabs() + err.Error())
 }
 
 // R reports the error if there is any.
 func R(err error) {
 	if err != nil {
-		fmt.Println(err)
+		P(err)
 	}
+}
+
+// P prints the arguments as they are.
+func P(args ...interface{}) {
+	fmt.Print(tabs())
+	for _, a := range args {
+		fmt.Print(a)
+	}
+	fmt.Println()
 }
 
 // S strings together the arguments as they are.
@@ -118,10 +201,56 @@ func S(args ...interface{}) string {
 	return str
 }
 
-// P prints the arguments as they are.
-func P(args ...interface{}) {
+func p(args ...interface{}) {
 	for _, a := range args {
 		fmt.Print(a)
 	}
 	fmt.Println()
+}
+
+func tabs() string {
+	tabs := ""
+
+	// wait to read
+	// <-read
+	gidSync.Lock()
+
+	literalSync.RLock()
+	defer literalSync.RUnlock()
+	if literal {
+		return tabs
+	}
+
+	// find gid (CAUTION; anti-pattern)
+	b := make([]byte, 64)
+	b = b[:runtime.Stack(b, false)]
+	b = bytes.TrimPrefix(b, []byte("goroutine "))
+	b = b[:bytes.IndexByte(b, ' ')]
+	gid, _ := strconv.ParseUint(string(b), 10, 64)
+
+	index := -1
+	for i, id := range gids {
+		if id == gid {
+			index = i
+		}
+	}
+	if index >= 0 { // found
+		tabs = strings.Repeat("\t", index)
+	} else { // not found; new channel
+		index = len(gids)
+		gids = append(gids, gid)
+		tabs = strings.Repeat("\t", index)
+		p(tabs, "Ch| ", index+1)
+		p(tabs, "|||")
+	}
+
+	// finished reading
+	// read <- true
+	gidSync.Unlock()
+
+	// <--
+	// <-- OUT-OF-SYNC
+	// <--
+
+	return tabs
 }
