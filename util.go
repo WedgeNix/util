@@ -17,6 +17,8 @@ import (
 
 	"sync"
 
+	"io/ioutil"
+
 	"gopkg.in/gomail.v2"
 )
 
@@ -35,9 +37,6 @@ func init() {
 	Literal(false)
 
 	gids = []uint64{}
-
-	// read = make(chan bool, 1)
-	// read <- true
 }
 
 // EmailLogin login for SMTP.
@@ -60,7 +59,6 @@ func (l *EmailLogin) Email(to []string, subject string, body string, attachment 
 	err := d.DialAndSend(msg)
 	if err != nil {
 		fmt.Println(err)
-
 	}
 }
 
@@ -119,49 +117,36 @@ func Save(name string, v interface{}) {
 	}
 }
 
+// Read reads a reader in full, returning the entire string.
+func Read(r io.Reader) string {
+	b, err := ioutil.ReadAll(r)
+	R(err)
+	return string(b)
+}
+
 // Debug sets whether or not to print debug statements.
 func Debug(b bool) {
-	// wait to read
-	// <-read
 	debugSync.Lock()
-
 	debug = b
-
-	// finished reading
-	// read <- true
 	debugSync.Unlock()
 }
 
 // Literal turns on/off channel printing markup.
 func Literal(b bool) {
-	// wait to read
-	// <-read
 	literalSync.Lock()
-
 	literal = b
-
-	// finished reading
-	// read <- true
 	literalSync.Unlock()
 }
 
 // Comment adds visual comments if debugging.
 func Comment(args ...string) {
-	// wait to read
-	// <-read
-
 	debugSync.RLock()
 	defer debugSync.RUnlock()
 	if !debug {
 		return
 	}
 
-	// finished reading
-	// read <- true
-
-	// <--
-	// <-- OUT-OF-SYNC
-	// <--
+	P()
 
 	for _, comment := range args {
 		P("//", comment)
@@ -211,8 +196,6 @@ func p(args ...interface{}) {
 func tabs() string {
 	tabs := ""
 
-	// wait to read
-	// <-read
 	gidSync.Lock()
 
 	literalSync.RLock()
@@ -244,13 +227,7 @@ func tabs() string {
 		p(tabs, "|||")
 	}
 
-	// finished reading
-	// read <- true
 	gidSync.Unlock()
-
-	// <--
-	// <-- OUT-OF-SYNC
-	// <--
 
 	return tabs
 }
