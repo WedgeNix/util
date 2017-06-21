@@ -138,11 +138,21 @@ func Literal(b bool) {
 	literalSync.Unlock()
 }
 
-// Comment adds visual comments if debugging.
-func Comment(args ...string) {
+func getLiteral() bool {
+	literalSync.RLock()
+	defer literalSync.RUnlock()
+	return literal
+}
+
+func getDebug() bool {
 	debugSync.RLock()
 	defer debugSync.RUnlock()
-	if !debug {
+	return debug
+}
+
+// Comment adds visual comments if debugging.
+func Comment(args ...string) {
+	if !getDebug() {
 		return
 	}
 
@@ -197,10 +207,9 @@ func tabs() string {
 	tabs := ""
 
 	gidSync.Lock()
+	defer gidSync.Unlock()
 
-	literalSync.RLock()
-	defer literalSync.RUnlock()
-	if literal {
+	if getLiteral() {
 		return tabs
 	}
 
@@ -226,8 +235,6 @@ func tabs() string {
 		p(tabs, "Ch| ", index+1)
 		p(tabs, "|||")
 	}
-
-	gidSync.Unlock()
 
 	return tabs
 }
