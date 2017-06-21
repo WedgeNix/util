@@ -155,12 +155,11 @@ func Comment(args ...string) {
 	if !getDebug() {
 		return
 	}
-
 	P()
-
 	for _, comment := range args {
-		P("//", comment)
+		P("// ", comment)
 	}
+	P()
 }
 
 // E reports the error if there is any and exits.
