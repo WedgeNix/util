@@ -75,17 +75,17 @@ func (l HTTPLogin) Base64() string {
 
 // Get receives an HTTP response from the given URL using authorization.
 func (l HTTPLogin) Get(url string) *http.Response {
-	return l.req(http.MethodGet, url)
+	return l.req(http.MethodGet, url, nil)
 }
 
 // Post receives an HTTP response from the given URL using authorization.
-func (l HTTPLogin) Post(url string) *http.Response {
-	return l.req(http.MethodPost, url)
+func (l HTTPLogin) Post(url string, b []byte) *http.Response {
+	return l.req(http.MethodPost, url, bytes.NewReader(b))
 }
 
 // Get receives an HTTP response from the given URL using authorization.
-func (l HTTPLogin) req(method string, url string) *http.Response {
-	req, err := http.NewRequest(method, url, nil)
+func (l HTTPLogin) req(method string, url string, body io.Reader) *http.Response {
+	req, err := http.NewRequest(method, url, body)
 	E(err)
 	req.Header.Add("Authorization", "Basic "+l.Base64())
 	cl := http.Client{Timeout: 10 * time.Second}
