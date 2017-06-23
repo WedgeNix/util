@@ -75,7 +75,17 @@ func (l HTTPLogin) Base64() string {
 
 // Get receives an HTTP response from the given URL using authorization.
 func (l HTTPLogin) Get(url string) *http.Response {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	return l.req(http.MethodGet, url)
+}
+
+// Post receives an HTTP response from the given URL using authorization.
+func (l HTTPLogin) Post(url string) *http.Response {
+	return l.req(http.MethodPost, url)
+}
+
+// Get receives an HTTP response from the given URL using authorization.
+func (l HTTPLogin) req(method string, url string) *http.Response {
+	req, err := http.NewRequest(method, url, nil)
 	E(err)
 	req.Header.Add("Authorization", "Basic "+l.Base64())
 	cl := http.Client{Timeout: 10 * time.Second}
@@ -231,6 +241,7 @@ func tabs() string {
 		index = len(gids)
 		gids = append(gids, gid)
 		tabs = strings.Repeat("\t", index)
+		p()
 		p(tabs, "Ch| ", index+1)
 		p(tabs, "|||")
 	}
