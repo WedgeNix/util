@@ -69,6 +69,9 @@ func (l HTTPLogin) req(method string, url string, body io.Reader) *http.Response
 	req, err := http.NewRequest(method, url, body)
 	E(err)
 	req.Header.Add("Authorization", "Basic "+l.Base64())
+	if body != nil {
+		req.Header.Add("Content-Type", "application/json")
+	}
 	cl := http.Client{Timeout: 10 * time.Second}
 	resp, err := cl.Do(req)
 	E(err)
