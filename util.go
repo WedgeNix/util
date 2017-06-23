@@ -8,36 +8,15 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
 	"log"
 
-	"sync"
-
 	"io/ioutil"
 
 	"gopkg.in/gomail.v2"
 )
-
-var (
-	debug       bool
-	debugSync   sync.RWMutex
-	literal     bool
-	literalSync sync.RWMutex
-	gids        []uint64
-	gidSync     sync.Mutex
-)
-
-func init() {
-	// default settings
-	Debug(true)
-	Literal(false)
-
-	gids = []uint64{}
-}
 
 // EmailLogin login for SMTP.
 type EmailLogin struct {
@@ -79,7 +58,9 @@ func (l HTTPLogin) Get(url string) *http.Response {
 }
 
 // Post receives an HTTP response from the given URL using authorization.
-func (l HTTPLogin) Post(url string, b []byte) *http.Response {
+func (l HTTPLogin) Post(url string, v interface{}) *http.Response {
+	b, err := json.Marshal(v)
+	R(err)
 	return l.req(http.MethodPost, url, bytes.NewReader(b))
 }
 
@@ -134,53 +115,20 @@ func Read(r io.Reader) string {
 	return string(b)
 }
 
-// Debug sets whether or not to print debug statements.
-func Debug(b bool) {
-	debugSync.Lock()
-	debug = b
-	debugSync.Unlock()
-}
-
-// Literal turns on/off channel printing markup.
-func Literal(b bool) {
-	literalSync.Lock()
-	literal = b
-	literalSync.Unlock()
-}
-
-func getLiteral() bool {
-	literalSync.RLock()
-	defer literalSync.RUnlock()
-	return literal
-}
-
-func getDebug() bool {
-	debugSync.RLock()
-	defer debugSync.RUnlock()
-	return debug
-}
-
-// Comment adds visual comments if debugging.
-func Comment(args ...string) {
-	if !getDebug() {
-		return
-	}
-	P()
-	for _, comment := range args {
-		P("// ", comment)
-	}
-	P()
-}
-
 // E reports the error if there is any and exits.
-func E(err error) {
+func E(err error, skip ...bool) {
 	if err == nil {
 		return
 	}
-	log.Fatalln(tabs() + err.Error())
+	if len(skip) > 0 && skip[0] {
+		log.Println(err)
+	} else {
+		log.Fatalln(err)
+	}
 }
 
 // R reports the error if there is any.
+// Deprecated: use util.E(err [, skip?])
 func R(err error) {
 	if err != nil {
 		P(err)
@@ -189,7 +137,6 @@ func R(err error) {
 
 // P prints the arguments as they are.
 func P(args ...interface{}) {
-	fmt.Print(tabs())
 	for _, a := range args {
 		fmt.Print(a)
 	}
@@ -210,41 +157,4 @@ func p(args ...interface{}) {
 		fmt.Print(a)
 	}
 	fmt.Println()
-}
-
-func tabs() string {
-	tabs := ""
-
-	gidSync.Lock()
-	defer gidSync.Unlock()
-
-	if getLiteral() {
-		return tabs
-	}
-
-	// find gid (CAUTION; anti-pattern)
-	b := make([]byte, 64)
-	b = b[:runtime.Stack(b, false)]
-	b = bytes.TrimPrefix(b, []byte("goroutine "))
-	b = b[:bytes.IndexByte(b, ' ')]
-	gid, _ := strconv.ParseUint(string(b), 10, 64)
-
-	index := -1
-	for i, id := range gids {
-		if id == gid {
-			index = i
-		}
-	}
-	if index >= 0 { // found
-		tabs = strings.Repeat("\t", index)
-	} else { // not found; new channel
-		index = len(gids)
-		gids = append(gids, gid)
-		tabs = strings.Repeat("\t", index)
-		p()
-		p(tabs, "Ch| ", index+1)
-		p(tabs, "|||")
-	}
-
-	return tabs
 }
