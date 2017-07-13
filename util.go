@@ -22,19 +22,19 @@ import (
 type EmailLogin struct {
 	User string
 	Pass string
+	SMTP string
 }
 
 //Email to send basic emails from a particular gmail account.
 func (l *EmailLogin) Email(to []string, subject string, body string, attachment string) {
-	email := l.User + "@gmail.com"
 	msg := gomail.NewMessage()
-	msss := map[string][]string{"From": {"WedgeNix<" + email + ">"}, "To": to, "Subject": {subject}}
+	msss := map[string][]string{"From": {"WedgeNix<" + l.User + ">"}, "To": to, "Subject": {subject}}
 	msg.SetHeaders(msss)
 	msg.SetBody("text/html", body)
 	if len(attachment) > 0 {
 		msg.Attach(attachment)
 	}
-	d := gomail.NewDialer("smtp.gmail.com", 587, email, l.Pass)
+	d := gomail.NewDialer(l.SMTP, 587, l.User, l.Pass)
 	err := d.DialAndSend(msg)
 	if err != nil {
 		fmt.Println(err)
