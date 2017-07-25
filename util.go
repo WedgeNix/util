@@ -109,10 +109,9 @@ func Save(name string, v interface{}) {
 }
 
 // Read reads a reader in full, returning the entire string.
-func Read(r io.Reader) string {
+func Read(r io.Reader) (string, error) {
 	b, err := ioutil.ReadAll(r)
-	R(err)
-	return string(b)
+	return string(b), err
 }
 
 // HTTPStatus responds to the HTTP request with a JSON containing the status and message.
