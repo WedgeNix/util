@@ -115,8 +115,8 @@ func Read(r io.Reader) string {
 	return string(b)
 }
 
-// JSONResp responds to the HTTP request with a JSON containing the status and message.
-func JSONResp(c *gin.Context, status int, message string) {
+// HTTPStatus responds to the HTTP request with a JSON containing the status and message.
+func HTTPStatus(c *gin.Context, status int, message string) {
 	c.JSON(status, gin.H{
 		"Status":  http.StatusText(status),
 		"Message": message,
