@@ -15,6 +15,7 @@ import (
 
 	"io/ioutil"
 
+	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
 )
 
@@ -112,6 +113,14 @@ func Read(r io.Reader) string {
 	b, err := ioutil.ReadAll(r)
 	R(err)
 	return string(b)
+}
+
+// JSONResp responds to the HTTP request with a JSON containing the status and message.
+func JSONResp(c *gin.Context, status int, message string) {
+	c.JSON(status, gin.H{
+		"Status":  http.StatusText(status),
+		"Message": message,
+	})
 }
 
 // E reports the error if there is any and exits.
