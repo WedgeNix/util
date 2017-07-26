@@ -75,6 +75,12 @@ func (l HTTPLogin) req(method string, url string, body io.Reader) *http.Response
 	return resp
 }
 
+// LANow grabs time from Los Angeles.
+func LANow() time.Time {
+	la, _ := time.LoadLocation("America/Los_Angeles")
+	return time.Now().In(la)
+}
+
 // Load reads in a JSON from either an HTTP GET response or a local file.
 func Load(name string, v interface{}) {
 	var r io.Reader
