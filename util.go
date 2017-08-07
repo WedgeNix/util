@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"log"
@@ -126,6 +127,30 @@ func HTTPStatus(c *gin.Context, status int, message string) {
 		"Status":  http.StatusText(status),
 		"Message": message,
 	})
+}
+
+// MergeErr merges errors into one channel.
+func MergeErr(errcs ...<-chan error) <-chan error {
+	newerrc := make(chan error)
+	var wg sync.WaitGroup
+
+	for _, errc := range errcs {
+		errc := errc
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for err := range errc {
+				newerrc <- err
+			}
+		}()
+	}
+
+	go func() {
+		defer close(newerrc)
+		wg.Wait()
+	}()
+
+	return newerrc
 }
 
 // E reports the error if there is any and exits.
