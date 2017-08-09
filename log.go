@@ -1,10 +1,13 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"runtime"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -253,17 +256,91 @@ func init() {
 	setFlags(Lshortfile)
 	mw := io.MultiWriter(os.Stdout, f)
 	setOutput(mw)
+
 }
 
-// These functions write to the standard logger.
+var (
+	gids      []uint64
+	gidsState sync.Mutex
+	logLock   sync.Mutex
 
-var logLock sync.Mutex
+	uniN = map[rune]string{
+		'0': "₀",
+		'1': "₁",
+		'2': "₂",
+		'3': "₃",
+		'4': "₄",
+		'5': "₅",
+		'6': "₆",
+		'7': "₇",
+		'8': "₈",
+		'9': "₉",
+	}
+)
 
 // Log calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Log(v ...interface{}) {
 	logLock.Lock()
 	defer logLock.Unlock()
-	std.SetPrefix(LANow().Format("║3:04:05 PM║"))
-	std.Output(2, fmt.Sprintln(v...))
+	t := LANow().Format("║3:04:05 PM ║")
+	tabCnt, gidCnt := tabs()
+	tabs := strings.Repeat("│", tabCnt)
+	num := strconv.Itoa(tabCnt + 1)
+	for _, r := range num {
+		num = strings.Replace(num, string(r), uniN[r], -1)
+	}
+	if tabCnt == 0 {
+		num = ""
+	}
+	ln := tabs + num
+	args := fmt.Sprint(v...)
+	end := strings.Repeat("│", max(gidCnt-1-(len(ln)/3+len(args)), 0))
+	std.Output(2, t+ln+args+end+"\n")
+}
+
+func max(i, j int) int {
+	if i > j {
+		return i
+	}
+	return j
+}
+
+// Visualization allows goroutine towers to display.
+var Visualization bool
+
+func tabs() (int, int) {
+	if !Visualization {
+		return 0, 0
+	}
+
+	gidsState.Lock()
+	defer gidsState.Unlock()
+
+	gid := getGID()
+
+	index := -1
+	for i, id := range gids {
+		if id == gid {
+			index = i
+		}
+	}
+
+	if index != -1 {
+		return index, len(gids)
+	}
+
+	gids = append(gids, gid)
+
+	return len(gids) - 1, len(gids)
+}
+
+func getGID() uint64 {
+	// find gid (CAUTION; anti-pattern)
+	b := make([]byte, 64)
+	b = b[:runtime.Stack(b, false)]
+	b = bytes.TrimPrefix(b, []byte("goroutine "))
+	b = b[:bytes.IndexByte(b, ' ')]
+	gid, _ := strconv.ParseUint(string(b), 10, 64)
+	return gid
 }
