@@ -290,7 +290,7 @@ func Log(v ...interface{}) {
 	for _, r := range num {
 		num = strings.Replace(num, string(r), uniN[r], -1)
 	}
-	if tabCnt == 0 {
+	if tabCnt == 0 && gidCnt == 0 {
 		num = ""
 	}
 	ln := tabs + num
