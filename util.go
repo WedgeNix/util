@@ -154,6 +154,7 @@ func MergeErr(errcs ...<-chan error) <-chan error {
 }
 
 // E reports the error if there is any and exits.
+// Deprecated: handle errors by returning them as values
 func E(err error, skip ...bool) {
 	if err == nil {
 		return
@@ -195,4 +196,21 @@ func p(args ...interface{}) {
 		fmt.Print(a)
 	}
 	fmt.Println()
+}
+
+func init() {
+	f, _ := os.Create("“util․Log” " + LANow().Format("Mon Jan 2, 2006 (3∶04 PM)") + ".log")
+	log.SetFlags(log.Lshortfile)
+	mw := io.MultiWriter(os.Stdout, f)
+	log.SetOutput(mw)
+}
+
+var state = sync.Mutex{}
+
+// Log prints to the standard console out while also printing to a log file.
+func Log(v ...interface{}) {
+	state.Lock()
+	defer state.Unlock()
+	log.SetPrefix(LANow().Format("║3:04:05 PM║"))
+	log.Println(v...)
 }
