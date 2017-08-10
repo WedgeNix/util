@@ -240,23 +240,21 @@ func (l *logger) SetPrefix(prefix string) {
 }
 
 // SetOutput sets the output destination for the standard logger.
-func setOutput(w io.Writer) {
+func SetOutput(w io.Writer) {
 	std.mu.Lock()
 	defer std.mu.Unlock()
-	std.out = w
+	std.out = io.MultiWriter(os.Stdout, w)
 }
 
 // SetFlags sets the output flags for the standard logger.
-func setFlags(flag int) {
+func SetFlags(flag int) {
 	std.SetFlags(flag)
 }
 
 func init() {
 	f, _ := os.Create("“util․Log” " + LANow().Format("Mon Jan 2, 2006 (3∶04 PM)") + ".log")
-	setFlags(Lshortfile)
-	mw := io.MultiWriter(os.Stdout, f)
-	setOutput(mw)
-
+	SetFlags(Lshortfile)
+	SetOutput(f)
 }
 
 var (
