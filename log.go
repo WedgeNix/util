@@ -300,7 +300,15 @@ func Log(v ...interface{}) {
 	ln := tabs + num
 	args := fmt.Sprint(v...)
 	end := strings.Repeat("│", max(gidCnt-1-(len(ln)/3+len(args)), 0))
-	std.Output(2, t+ln+args+end+"\n")
+	err := ""
+	if len(v) < 1 {
+		return
+	}
+	_, ok := v[0].(error)
+	if ok {
+		err = "error: "
+	}
+	std.Output(2, t+err+ln+args+end+"\n")
 }
 
 func max(i, j int) int {
