@@ -284,7 +284,7 @@ var (
 
 // Log calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
-func Log(v ...interface{}) {
+func Log(v ...interface{}) error {
 	logLock.Lock()
 	defer logLock.Unlock()
 	t := LANow().Format("║3:04:05 PM ║")
@@ -300,15 +300,16 @@ func Log(v ...interface{}) {
 	ln := tabs + num
 	args := fmt.Sprint(v...)
 	end := strings.Repeat("│", max(gidCnt-1-(len(ln)/3+len(args)), 0))
-	err := ""
 	if len(v) < 1 {
-		return
+		return nil
 	}
-	_, ok := v[0].(error)
+	e := ""
+	err, ok := v[0].(error)
 	if ok {
-		err = "error: "
+		e = "error: "
 	}
-	std.Output(2, t+err+ln+args+end+"\n")
+	std.Output(2, t+e+ln+args+end+"\n")
+	return err
 }
 
 func max(i, j int) int {
