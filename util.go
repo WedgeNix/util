@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -157,6 +160,27 @@ func MergeErr(errcs ...<-chan error) <-chan error {
 	}()
 
 	return newerrc
+}
+
+type logError struct {
+	err  error
+	file string
+	line int
+}
+
+func (le logError) Error() string {
+	return le.file + ":" + strconv.Itoa(le.line) + ": " + le.err.Error()
+}
+
+// Err wraps the filename and line number around the error.
+func Err(err error) error {
+	_, f, ln, _ := runtime.Caller(1)
+	return &logError{err, f[strings.LastIndex(f, "/")+1:], ln}
+}
+
+// NewErr wraps the filename and line number around the error.
+func NewErr(err string) error {
+	return Err(errors.New(err))
 }
 
 // E reports the error if there is any and exits.
