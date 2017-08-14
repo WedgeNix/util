@@ -51,29 +51,35 @@ func (l HTTPLogin) Base64() string {
 }
 
 // Get receives an HTTP response from the given URL using authorization.
-func (l HTTPLogin) Get(url string) *http.Response {
+func (l HTTPLogin) Get(url string) (*http.Response, error) {
 	return l.req(http.MethodGet, url, nil)
 }
 
 // Post receives an HTTP response from the given URL using authorization.
-func (l HTTPLogin) Post(url string, v interface{}) *http.Response {
+func (l HTTPLogin) Post(url string, v interface{}) (*http.Response, error) {
 	b, err := json.Marshal(v)
-	R(err)
+	if err != nil {
+		return nil, err
+	}
 	return l.req(http.MethodPost, url, bytes.NewReader(b))
 }
 
 // Get receives an HTTP response from the given URL using authorization.
-func (l HTTPLogin) req(method string, url string, body io.Reader) *http.Response {
+func (l HTTPLogin) req(method string, url string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, body)
-	E(err)
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Add("Authorization", "Basic "+l.Base64())
 	if body != nil {
 		req.Header.Add("Content-Type", "application/json")
 	}
 	cl := http.Client{Timeout: 10 * time.Second}
 	resp, err := cl.Do(req)
-	E(err)
-	return resp
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // LANow grabs time from Los Angeles.
