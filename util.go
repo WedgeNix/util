@@ -178,6 +178,9 @@ func (le logError) Error() string {
 
 // Err wraps the filename and line number around the error.
 func Err(err error) error {
+	if err == nil {
+		return err
+	}
 	_, f, ln, _ := runtime.Caller(1)
 	return &logError{err, f[strings.LastIndex(f, "/")+1:], ln}
 }
