@@ -169,7 +169,11 @@ type logError struct {
 }
 
 func (le logError) Error() string {
-	return le.file + ":" + strconv.Itoa(le.line) + ": " + le.err.Error()
+	err := ""
+	if le.err != nil {
+		err = le.err.Error()
+	}
+	return le.file + ":" + strconv.Itoa(le.line) + ": " + err
 }
 
 // Err wraps the filename and line number around the error.
