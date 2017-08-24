@@ -190,6 +190,39 @@ func NewErr(err string) error {
 	return Err(errors.New(err))
 }
 
+// NewLoader creates a console loading bar.
+func NewLoader(msg string) chan<- bool {
+	fmt.Print(msg + "\n╘")
+	di := 375
+	for di > 0 {
+		time.Sleep(time.Duration(di) * time.Millisecond)
+		fmt.Print("═")
+		di = int(float64(di) / 1.5)
+	}
+	for di < 375 {
+		time.Sleep(time.Duration(di) * time.Millisecond)
+		fmt.Print("═")
+		di = int(float64(di) * 1.5)
+		if di < 2 {
+			di = 2
+		}
+	}
+	done := make(chan bool)
+	go func() {
+		for {
+			time.Sleep(2 * time.Second)
+			select {
+			case <-done:
+				fmt.Println("╕")
+				return
+			default:
+				fmt.Print("═")
+			}
+		}
+	}()
+	return done
+}
+
 // E reports the error if there is any and exits.
 // Deprecated: handle errors by returning them as values
 func E(err error, skip ...bool) {
