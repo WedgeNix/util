@@ -190,36 +190,34 @@ func NewErr(err string) error {
 	return Err(errors.New(err))
 }
 
+var ready = make(chan bool, 1)
+
 // NewLoader creates a console loading bar.
 func NewLoader(msg string) chan<- bool {
-	fmt.Print(msg + "\n╘")
-	di := 375
-	for di > 0 {
-		time.Sleep(time.Duration(di) * time.Millisecond)
-		fmt.Print("═")
-		di = int(float64(di) / 1.5)
-	}
-	for di < 375 {
-		time.Sleep(time.Duration(di) * time.Millisecond)
-		fmt.Print("═")
-		di = int(float64(di) * 1.5)
-		if di < 2 {
-			di = 2
-		}
-	}
+	<-ready
+
 	done := make(chan bool)
+
+	frames := []string{"░", "▒", "▓", "█", "▓", "▒"}
+	frame := 0
+	delay := 200
+
 	go func() {
 		for {
-			time.Sleep(2 * time.Second)
 			select {
 			case <-done:
-				fmt.Println("╕")
+				fmt.Println("\r" + msg + "  !")
+				ready <- true
 				return
 			default:
-				fmt.Print("═")
 			}
+
+			fmt.Print("\r" + msg + "  " + frames[frame] + " ")
+			frame = (frame + 1) % len(frames)
+			time.Sleep(time.Duration(delay) * time.Millisecond)
 		}
 	}()
+
 	return done
 }
 

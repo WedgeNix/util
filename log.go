@@ -14,6 +14,7 @@ import (
 func init() {
 	f, _ = os.Create(LANow().Format("Mon Jan 2, 2006 (3∶04 PM)") + ".log")
 	w = io.MultiWriter(os.Stdout, f)
+	ready <- true
 }
 
 // GetLogFile returns the standard logging file for outputting.
@@ -68,6 +69,18 @@ func max(i, j int) int {
 		return i
 	}
 	return j
+}
+
+func exists() bool {
+	gidsState.Lock()
+	defer gidsState.Unlock()
+	myGID := getGID()
+	for _, gid := range gids {
+		if gid == myGID {
+			return true
+		}
+	}
+	return false
 }
 
 // Visualization allows goroutine towers to display.
