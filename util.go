@@ -193,7 +193,7 @@ func NewErr(err string) error {
 var ready = make(chan bool, 1)
 
 // NewLoader creates a console loading bar.
-func NewLoader(msg string, w ...io.Writer) chan<- bool {
+func NewLoader(msg string, stream ...bool) chan<- bool {
 	<-ready
 
 	done := make(chan bool)
@@ -202,24 +202,22 @@ func NewLoader(msg string, w ...io.Writer) chan<- bool {
 	frame := 0
 	delay := 200
 
-	var wr io.Writer
-	if len(w) > 0 {
-		wr = w[0]
-	} else {
-		wr = os.Stdout
+	r := "\r"
+	if len(stream) > 0 && stream[0] {
+		r = ""
 	}
 
 	go func() {
 		for {
 			select {
 			case <-done:
-				fmt.Fprintln(wr, "\r"+msg+"  !")
+				fmt.Println(r + msg + "  !")
 				ready <- true
 				return
 			default:
 			}
 
-			fmt.Fprint(wr, "\r"+msg+"  "+frames[frame]+" ")
+			fmt.Print(r + msg + "  " + frames[frame] + " ")
 			frame = (frame + 1) % len(frames)
 			time.Sleep(time.Duration(delay) * time.Millisecond)
 		}
