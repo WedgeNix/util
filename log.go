@@ -44,7 +44,7 @@ func Log(v ...interface{}) {
 	if w == nil {
 		f, _ = os.Create(fnm)
 		w = io.MultiWriter(os.Stdout, f)
-		ready <- true
+		// ready <- true
 	}
 
 	logLock.Lock()
