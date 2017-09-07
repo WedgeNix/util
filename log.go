@@ -41,7 +41,7 @@ var (
 // Arguments are handled in the manner of fmt.Println.
 func Log(v ...interface{}) {
 	fnm := LANow().Format("Mon Jan 2, 2006 (3∶04 PM)") + ".log"
-	if _, err := os.Stat(fnm); os.IsNotExist(err) {
+	if w == nil {
 		f, _ = os.Create(fnm)
 		w = io.MultiWriter(os.Stdout, f)
 		ready <- true
