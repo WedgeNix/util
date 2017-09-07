@@ -40,7 +40,7 @@ var (
 // Log calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Log(v ...interface{}) {
-	fnm := LANow().Format("Mon Jan 2, 2006 (3∶04 PM)") + ".log"
+	fnm := LANow().Format("Mon Jan 2, 2006") + ".log"
 	if _, err := os.Stat(fnm); os.IsNotExist(err) {
 		f, _ = os.Create(fnm)
 		w = io.MultiWriter(os.Stdout, f)
