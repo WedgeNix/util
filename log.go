@@ -11,12 +11,6 @@ import (
 	"sync"
 )
 
-func init() {
-	f, _ = os.Create(LANow().Format("Mon Jan 2, 2006 (3∶04 PM)") + ".log")
-	w = io.MultiWriter(os.Stdout, f)
-	ready <- true
-}
-
 // GetLogFile returns the standard logging file for outputting.
 func GetLogFile() *os.File {
 	return f
@@ -46,6 +40,17 @@ var (
 // Log calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Log(v ...interface{}) {
+	fnm := LANow().Format("Mon Jan 2, 2006 (3∶04 PM)") + ".log"
+	if _, err := os.Stat(fnm); os.IsNotExist(err) {
+		f, _ = os.Create(fnm)
+		w = io.MultiWriter(os.Stdout, f)
+		ready <- true
+	} else if w == nil {
+		f, _ = os.Open(fnm)
+		w = io.MultiWriter(os.Stdout, f)
+		ready <- true
+	}
+
 	logLock.Lock()
 	defer logLock.Unlock()
 	t := LANow().Format("║Mon Jan 2, 3:04:05 PM║ ")
