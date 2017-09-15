@@ -28,18 +28,33 @@ type EmailLogin struct {
 	User string
 	Pass string
 	SMTP string
+	s    *gomail.SendCloser
+}
+
+// CloseSender closes and resets the email sender.
+func (l *EmailLogin) CloseSender() {
+	(*l.s).Close()
+	l.s = nil
 }
 
 //Email to send basic emails from a particular gmail account.
 func (l *EmailLogin) Email(to []string, subject string, body string, attachment string) error {
 	msg := gomail.NewMessage()
-	msss := map[string][]string{"From": {"WedgeNix<" + l.User + ">"}, "To": to, "Subject": {subject}}
+	msss := map[string][]string{"Subject": {subject}}
 	msg.SetHeaders(msss)
 	msg.SetBody("text/html", body)
 	if len(attachment) > 0 {
 		msg.Attach(attachment)
 	}
-	return gomail.NewDialer(l.SMTP, 587, l.User, l.Pass).DialAndSend(msg)
+	if l.s == nil {
+		d := gomail.NewDialer(l.SMTP, 587, l.User, l.Pass)
+		s, err := d.Dial()
+		if err != nil {
+			return err
+		}
+		l.s = &s
+	}
+	return (*l.s).Send("WedgeNix<"+l.User+">", to, msg)
 }
 
 // HTTPLogin allows basic HTTP authorization for getting simple responses.
