@@ -28,6 +28,7 @@ type EmailLogin struct {
 	User string
 	Pass string
 	SMTP string
+	m    sync.Mutex
 	s    *gomail.SendCloser
 }
 
@@ -46,6 +47,11 @@ func (l *EmailLogin) Email(to []string, subject string, body string, attachment 
 	if len(attachment) > 0 {
 		msg.Attach(attachment)
 	}
+
+	// protect the sender against concurrent abuse
+	l.m.Lock()
+	defer l.m.Unlock()
+
 	if l.s == nil {
 		d := gomail.NewDialer(l.SMTP, 587, l.User, l.Pass)
 		s, err := d.Dial()
