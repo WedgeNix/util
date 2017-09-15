@@ -41,8 +41,7 @@ func (l *EmailLogin) CloseSender() {
 //Email to send basic emails from a particular gmail account.
 func (l *EmailLogin) Email(to []string, subject string, body string, attachment string) error {
 	msg := gomail.NewMessage()
-	msss := map[string][]string{"Subject": {subject}}
-	msg.SetHeaders(msss)
+	msg.SetHeaders(map[string][]string{"Subject": {subject}})
 	msg.SetBody("text/html", body)
 	if len(attachment) > 0 {
 		msg.Attach(attachment)
