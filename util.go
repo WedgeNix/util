@@ -25,45 +25,50 @@ import (
 
 // EmailLogin login for SMTP.
 type EmailLogin struct {
-	User string
-	Pass string
-	SMTP string
-	m    sync.Mutex
-	s    *gomail.SendCloser
-}
-
-// CloseSender closes and resets the email sender.
-func (l *EmailLogin) CloseSender() {
-	// protect the sender against concurrent abuse
-	l.m.Lock()
-	defer l.m.Unlock()
-
-	(*l.s).Close()
-	l.s = nil
+	User   string
+	Pass   string
+	SMTP   string
+	sender struct {
+		sync.Mutex
+		s *gomail.SendCloser
+	}
 }
 
 //Email to send basic emails from a particular gmail account.
 func (l *EmailLogin) Email(to []string, subject string, body string, attachment string) error {
 	msg := gomail.NewMessage()
-	msg.SetHeaders(map[string][]string{"Subject": {subject}})
+	msss := map[string][]string{"From": {"WedgeNix<" + l.User + ">"}, "To": to, "Subject": {subject}}
+	msg.SetHeaders(msss)
 	msg.SetBody("text/html", body)
 	if len(attachment) > 0 {
 		msg.Attach(attachment)
 	}
 
-	// protect the sender against concurrent abuse
-	l.m.Lock()
-	defer l.m.Unlock()
+	l.sender.Lock()
+	defer l.sender.Unlock()
 
-	if l.s == nil {
+	if l.sender.s == nil {
 		d := gomail.NewDialer(l.SMTP, 587, l.User, l.Pass)
 		s, err := d.Dial()
 		if err != nil {
 			return err
 		}
-		l.s = &s
+		l.sender.s = &s
 	}
-	return (*l.s).Send("WedgeNix<"+l.User+">", to, msg)
+	return gomail.Send(*l.sender.s, msg)
+}
+
+// Stop stops and clears the dialed email instance sender.
+func (l *EmailLogin) Stop() {
+	l.sender.Lock()
+	defer l.sender.Unlock()
+
+	if l.sender.s == nil {
+		return
+	}
+
+	(*l.sender.s).Close()
+	l.sender.s = nil
 }
 
 // HTTPLogin allows basic HTTP authorization for getting simple responses.
