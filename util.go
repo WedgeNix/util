@@ -34,6 +34,10 @@ type EmailLogin struct {
 
 // CloseSender closes and resets the email sender.
 func (l *EmailLogin) CloseSender() {
+	// protect the sender against concurrent abuse
+	l.m.Lock()
+	defer l.m.Unlock()
+
 	(*l.s).Close()
 	l.s = nil
 }
