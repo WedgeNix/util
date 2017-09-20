@@ -2,7 +2,6 @@ package util
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -50,7 +49,7 @@ func (l *EmailLogin) Email(to []string, subject string, body string, attachment 
 
 	if l.sender.s == nil {
 		d := gomail.NewDialer(l.SMTP, 587, l.User, l.Pass)
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
 		s, err := d.Dial()
 		if err != nil {
 			return err
