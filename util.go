@@ -23,6 +23,15 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
+// MustGetenv must get the environment variable or it panics.
+func MustGetenv(key string) string {
+	value, found := os.LookupEnv(key)
+	if !found {
+		panic(key + " not found")
+	}
+	return value
+}
+
 // EmailLogin login for SMTP.
 type EmailLogin struct {
 	User   string
