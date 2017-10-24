@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
-	"math/rand"
 	"net/http"
 	"os"
 	"runtime"
@@ -43,25 +41,6 @@ type EmailLogin struct {
 		sync.Mutex
 		s *gomail.SendCloser
 	}
-}
-
-func Backoff(f func() error, timeout ...time.Duration) {
-	if len(timeout) >= 2 {
-		panic("too many arguments")
-	}
-	maxWait := 48000
-	if len(timeout) >= 1 {
-		maxWait = int(timeout[0].Seconds() * 1000)
-	}
-	wait := 0
-	for attempts := 0.0; wait < maxWait; attempts++ {
-		err := f()
-		if err != nil {
-			wait = int(math.Min(float64(maxWait), math.Pow(2, attempts)+float64(rand.Intn(1000))+1))
-			time.Sleep(time.Duration(wait) * time.Millisecond)
-		}
-	}
-	println("util.go: backoff timed out")
 }
 
 //Email to send basic emails from a particular gmail account.
