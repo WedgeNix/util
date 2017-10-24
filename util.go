@@ -45,13 +45,13 @@ type EmailLogin struct {
 	}
 }
 
-func Backoff(f func() error, max ...time.Duration) {
-	if len(max) >= 2 {
+func Backoff(f func() error, timeout ...time.Duration) {
+	if len(timeout) >= 2 {
 		panic("too many arguments")
 	}
 	maxWait := 48000
-	if len(max) >= 1 {
-		maxWait = int(max[0].Seconds() * 1000)
+	if len(timeout) >= 1 {
+		maxWait = int(timeout[0].Seconds() * 1000)
 	}
 	wait := 0
 	for attempts := 0.0; wait < maxWait; attempts++ {
