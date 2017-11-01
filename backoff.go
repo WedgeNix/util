@@ -21,6 +21,7 @@ import (
 // }
 
 type Backoff struct {
+	Step    time.Duration
 	Attempt int
 	Timeout time.Duration
 }
@@ -31,8 +32,11 @@ func (b *Backoff) Wait(resp *http.Response, err error) (*http.Response, error) {
 	} else if b.Timeout < 32000 {
 		panic("backoff timeout too low; 32s minimum")
 	}
+	if b.Step.Seconds() < 1 {
+		b.Step = 1000 * time.Millisecond
+	}
 	maxWait := b.Timeout.Seconds() * 1000
-	wait := int(math.Min(maxWait, math.Pow(2, float64(b.Attempt))+float64(rand.Intn(1000))+1))
+	wait := int(math.Min(maxWait, math.Pow(2, float64(b.Attempt))+float64(rand.Intn(int(b.Step.Seconds()*1000)))+1))
 	if err != nil || resp.StatusCode > 200 {
 		time.Sleep(time.Duration(wait) * time.Millisecond)
 	}
