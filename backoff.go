@@ -3,7 +3,6 @@ package util
 import (
 	"math"
 	"math/rand"
-	"net/http"
 	"time"
 )
 
@@ -26,7 +25,7 @@ type Backoff struct {
 	Timeout time.Duration
 }
 
-func (b *Backoff) Wait(resp *http.Response, err error) (*http.Response, error) {
+func (b *Backoff) Wait(f func() error) bool {
 	if b.Timeout == 0 {
 		b.Timeout = 64000
 	} else if b.Timeout < 32000 {
@@ -37,11 +36,12 @@ func (b *Backoff) Wait(resp *http.Response, err error) (*http.Response, error) {
 	}
 	maxWait := b.Timeout.Seconds() * 1000
 	wait := int(math.Min(maxWait, math.Pow(2, float64(b.Attempt))+float64(rand.Intn(int(b.Step.Seconds()*1000)))+1))
-	if err != nil || resp.StatusCode > 200 {
+	waited := f() != nil
+	if waited {
 		time.Sleep(time.Duration(wait) * time.Millisecond)
 	}
 	b.Attempt++
-	return resp, err
+	return waited
 }
 
 // func Backoff(f func() (interface{}, error)) {
