@@ -3,7 +3,6 @@ package util
 import (
 	"math"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -39,9 +38,7 @@ func (b *Backoff) Wait(f func() error) bool {
 	wait := int(math.Min(maxWait, math.Pow(2, float64(b.Attempt))+float64(rand.Intn(int(b.Step.Seconds()*1000)))+1))
 	waited := f() != nil
 	if waited {
-		println(`time.Sleep(` + strconv.Itoa(wait) + `ms) ...`)
 		time.Sleep(time.Duration(wait) * time.Millisecond)
-		println(`time.Sleep(` + strconv.Itoa(wait) + `ms) !!!`)
 	}
 	b.Attempt++
 	return waited
