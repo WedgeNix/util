@@ -116,7 +116,7 @@ func (l HTTPLogin) req(method string, url string, body io.Reader) (*http.Respons
 	if body != nil {
 		req.Header.Add("Content-Type", "application/json")
 	}
-	cl := http.Client{Timeout: 10 * time.Second}
+	cl := http.Client{Timeout: 30 * time.Second}
 	resp, err := cl.Do(req)
 	if err != nil {
 		return nil, err
