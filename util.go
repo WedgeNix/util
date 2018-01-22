@@ -116,10 +116,14 @@ func (l HTTPLogin) req(method string, url string, body io.Reader, timeout ...tim
 	if body != nil {
 		req.Header.Add("Content-Type", "application/json")
 	}
+<<<<<<< HEAD
 	cl := http.Client{}
 	if len(timeout) > 0 {
 		cl.Timeout = timeout[0]
 	}
+=======
+	cl := http.Client{Timeout: 30 * time.Second}
+>>>>>>> b0027d4a4f0788d15a1b3bc91f756c525a41ab3b
 	resp, err := cl.Do(req)
 	if err != nil {
 		return nil, err
