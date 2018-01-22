@@ -107,7 +107,7 @@ func (l HTTPLogin) Post(url string, v interface{}) (*http.Response, error) {
 }
 
 // Get receives an HTTP response from the given URL using authorization.
-func (l HTTPLogin) req(method string, url string, body io.Reader) (*http.Response, error) {
+func (l HTTPLogin) req(method string, url string, body io.Reader, timeout ...time.Duration) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -116,7 +116,10 @@ func (l HTTPLogin) req(method string, url string, body io.Reader) (*http.Respons
 	if body != nil {
 		req.Header.Add("Content-Type", "application/json")
 	}
-	cl := http.Client{Timeout: 10 * time.Second}
+	cl := http.Client{}
+	if len(timeout) > 0 {
+		cl.Timeout = timeout[0]
+	}
 	resp, err := cl.Do(req)
 	if err != nil {
 		return nil, err
