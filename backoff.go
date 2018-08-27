@@ -8,19 +8,6 @@ import (
 	"time"
 )
 
-// var (
-// 	BackoffTimeout = 48 * time.Second
-
-// 	backoffLookupl sync.Mutex
-// 	backoffLookup  = map[interface{}]*backoffData{}
-// )
-
-// type backoffData struct {
-// 	sync.Mutex
-// 	wait  int
-// 	tries float64
-// }
-
 type Backoff struct {
 	initOnce sync.Once
 
