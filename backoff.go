@@ -3,6 +3,8 @@ package util
 import (
 	"math"
 	"math/rand"
+	"reflect"
+	"sync"
 	"time"
 )
 
@@ -20,28 +22,68 @@ import (
 // }
 
 type Backoff struct {
+	initOnce sync.Once
+
 	Step    time.Duration
-	Attempt int
+	Max     int
 	Timeout time.Duration
+	Attempt int
 }
 
-func (b *Backoff) Wait(f func() error) bool {
-	if b.Timeout == 0 {
-		b.Timeout = 64000 * time.Millisecond
-	} else if b.Timeout < 32000*time.Millisecond {
-		panic("backoff timeout too low; 32s minimum")
-	}
-	if b.Step.Seconds() < 1 {
-		b.Step = 1000 * time.Millisecond
-	}
-	maxWait := b.Timeout.Seconds() * 1000
-	wait := int(math.Min(maxWait, math.Pow(2, float64(b.Attempt))+float64(rand.Intn(int(b.Step.Seconds()*1000)))+1))
-	waited := f() != nil
-	if waited {
-		time.Sleep(time.Duration(wait) * time.Millisecond)
-	}
+func (b *Backoff) init() {
+	b.initOnce.Do(func() {
+		if b.Max == 0 {
+			if b.Timeout == 0 {
+				b.Timeout = 64000 * time.Millisecond
+			} else if b.Timeout < 32000*time.Millisecond {
+				panic("backoff timeout too low; 32 seconds minimum")
+			}
+		}
+		if b.Step.Seconds() < 1 {
+			b.Step = 1000 * time.Millisecond
+		}
+	})
+}
+
+type backoffNext struct {
+	*Backoff
+	i   interface{}
+	err error
+}
+
+func (b *Backoff) Func(i interface{}, err error) backoffNext {
+	b.init()
 	b.Attempt++
-	return waited
+	return backoffNext{b, i, err}
+}
+
+func (b backoffNext) Wait(v interface{}, err ...*error) bool {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Ptr {
+		panic("not a pointer")
+	}
+
+	ri := reflect.ValueOf(b.i)
+	if ri.Kind() != reflect.Ptr {
+		ri = ri.Elem()
+	}
+	if !ri.IsNil() && rv.Elem().CanSet() {
+		rv.Elem().Set(ri)
+	}
+	if len(err) > 0 {
+		*err[0] = b.err
+	}
+
+	if b.err == nil || b.Attempt >= b.Max {
+		return false
+	}
+
+	wait := time.Duration(math.Min(
+		b.Timeout.Seconds()*1000,
+		math.Pow(2, float64(b.Attempt))+float64(rand.Intn(int(b.Step.Seconds()*1000)))+1,
+	))
+	time.Sleep(wait * time.Millisecond)
+	return true
 }
 
 // func Backoff(f func() (interface{}, error)) {
