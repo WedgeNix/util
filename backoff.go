@@ -17,6 +17,7 @@ type Backoff struct {
 	Attempt int
 }
 
+// test
 func (b *Backoff) init() {
 	b.initOnce.Do(func() {
 		if b.Max == 0 {
