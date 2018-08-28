@@ -22,7 +22,6 @@ var (
 	gids      []uint64
 	gidsState sync.Mutex
 	logLock   sync.Mutex
-	err       error
 
 	uniN = map[rune]string{
 		'0': "₀",
@@ -43,10 +42,7 @@ var (
 func Log(v ...interface{}) {
 	fnm := LANow().Format("2006-01-02_150405") + ".log"
 	if w == nil {
-		f, err = os.Create(fnm)
-		if err != nil {
-			panic(err)
-		}
+		f, _ = os.Create(fnm)
 		w = io.MultiWriter(os.Stdout, f)
 		// ready <- true
 	}
