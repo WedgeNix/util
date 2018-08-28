@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-// ok not the last
 type Backoff struct {
 	initOnce sync.Once
 

@@ -32,6 +32,8 @@ func MustGetenv(key string) string {
 	return value
 }
 
+type LogFileName string
+
 // EmailLogin login for SMTP.
 type EmailLogin struct {
 	User   string

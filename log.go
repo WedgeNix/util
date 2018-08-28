@@ -22,6 +22,7 @@ var (
 	gids      []uint64
 	gidsState sync.Mutex
 	logLock   sync.Mutex
+	err       error
 
 	uniN = map[rune]string{
 		'0': "₀",
@@ -40,17 +41,19 @@ var (
 // Log calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Log(v ...interface{}) {
-	fnm := LANow().Format("2006-01-02_15:04:05") + ".log"
-
+	fnm := LANow().Format("2006-01-02_150405") + ".log"
 	if w == nil {
-		f, _ = os.Create(fnm)
+		f, err = os.Create(fnm)
+		if err != nil {
+			panic(err)
+		}
 		w = io.MultiWriter(os.Stdout, f)
 		// ready <- true
 	}
 
 	logLock.Lock()
 	defer logLock.Unlock()
-	t := LANow().Format("║Mon Jan 2, 3:04:05 PM║ ")
+	t := LANow().Format("|3:04:05 PM| ")
 	tabCnt, gidCnt := tabs()
 	tabs := strings.Repeat("│", tabCnt)
 	num := strconv.Itoa(tabCnt + 1)
@@ -64,6 +67,9 @@ func Log(v ...interface{}) {
 	args := fmt.Sprint(v...)
 	end := strings.Repeat("│", max(gidCnt-1-(len(ln)/3+len(args)), 0))
 	fmt.Fprintln(w, t+ln+args+end)
+}
+func GetLogFileName() string {
+	return f.Name()
 }
 
 func max(i, j int) int {
